@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MaybeTest {
 
-    private static final MaybeMonad M = MaybeMonad.INSTANCE;
+    private static final Monad<Maybe.Tag> M = Maybe.MONAD;
 
     // -------------------------------------------------------------------------
     // Functor

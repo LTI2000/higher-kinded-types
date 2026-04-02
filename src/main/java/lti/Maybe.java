@@ -1,6 +1,7 @@
 package lti;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * The concrete Maybe container. Wraps Optional internally.
@@ -11,6 +12,19 @@ final class Maybe<A> implements HKT<Maybe.Tag, A> {
    */
   interface Tag {
   }
+
+  static final Monad<Tag> MONAD = new Monad<>() {
+    @Override
+    public <A> HKT<Tag, A> pure(A a) {
+      return Maybe.just(a);
+    }
+
+    @Override
+    public <A, B> HKT<Tag, B> bind(HKT<Tag, A> fa, Function<A, HKT<Tag, B>> f) {
+      Maybe<A> ma = Maybe.narrow(fa);
+      return ma.isNothing() ? Maybe.nothing() : f.apply(ma.get());
+    }
+  };
 
   private final Optional<A> value;
 

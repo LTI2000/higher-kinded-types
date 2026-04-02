@@ -1,5 +1,7 @@
 package lti;
 
+import java.util.function.Function;
+
 final class Either<E, A> implements HKT<Either.Tag<E>, A> {
   /**
    * Phantom tag for Either<E, ?>. E is baked into the tag to keep F single-kinded.
@@ -48,5 +50,20 @@ final class Either<E, A> implements HKT<Either.Tag<E>, A> {
 
   public static <E, A> Either<E, A> narrow(HKT<Either.Tag<E>, A> HKT) {
     return (Either<E, A>) HKT;
+  }
+
+  static <E> Monad<Tag<E>> monad() {
+    return new Monad<>() {
+      @Override
+      public <A> HKT<Tag<E>, A> pure(A a) {
+        return Either.right(a);
+      }
+
+      @Override
+      public <A, B> HKT<Tag<E>, B> bind(HKT<Tag<E>, A> fa, Function<A, HKT<Tag<E>, B>> f) {
+        Either<E, A> ea = Either.narrow(fa);
+        return ea.isLeft() ? Either.left(ea.getLeft()) : f.apply(ea.getRight());
+      }
+    };
   }
 }

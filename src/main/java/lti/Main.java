@@ -5,8 +5,8 @@ import java.util.function.Function;
 
 public class Main {
   public static void main(String[] args) {
-      MaybeMonad M = MaybeMonad.INSTANCE;
-      ListMonad L = ListMonad.INSTANCE;
+      Monad<Maybe.Tag> M = Maybe.MONAD;
+      Monad<ListF.Tag> L = ListF.MONAD;
 
       // --- Maybe: Functor ---
       System.out.println("=== Maybe Functor ===");
@@ -44,7 +44,7 @@ public class Main {
 
       // --- Either: typed error handling ---
       System.out.println("\n=== Either Monad (typed errors) ===");
-      EitherMonad<String> E = new EitherMonad<>();
+      Monad<Either.Tag<String>> E = Either.monad();
 
       Function<Integer, HKT<Either.Tag<String>, Integer>> parsePositive =
           n -> n > 0 ? Either.right(n) : Either.left("Expected positive, got: " + n);

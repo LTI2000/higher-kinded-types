@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ListFTest {
 
-    private static final ListMonad L = ListMonad.INSTANCE;
+    private static final Monad<ListF.Tag> L = ListF.MONAD;
 
     // -------------------------------------------------------------------------
     // Functor

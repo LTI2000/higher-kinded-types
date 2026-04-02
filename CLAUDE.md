@@ -51,7 +51,10 @@ Functor<F>         fmap
                            fmap and splat have default implementations derived from bind
 ```
 
-Monad instances: `MaybeMonad` (singleton), `ListMonad` (singleton), `EitherMonad<E>` (instantiated per error type).
+Monad instances live on their containers — no separate companion classes:
+- `Maybe.MONAD` — static field
+- `ListF.MONAD` — static field (overrides default `fmap`/`splat` for efficiency)
+- `Either.monad()` — static factory method (generic in `E`, so a field isn't possible)
 
 ### Combinators (`Combinators.java`)
 
