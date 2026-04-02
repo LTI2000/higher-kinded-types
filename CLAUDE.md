@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+In the following, Claude Code assumes the role of a senior developer, who dislikes noise and clutter, and rather prefers to use clean, albeit advanced, abstractions.
+
+All changes being made should also include documentation and AI related files. We strive to automate automation, which is a nice meta pattern.
+
 ## Commands
 
 ```bash
