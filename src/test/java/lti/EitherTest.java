@@ -138,13 +138,13 @@ class EitherTest {
 
     private static void assertRight(Object expected, HKT<Either.Tag<String>, ?> hkt) {
         Either<String, ?> e = Either.narrow(hkt);
-        assertTrue(e.isRight(), "Expected Right(" + expected + ") but got Left(" + e.getLeft() + ")");
+        assertTrue(e.isRight(), () -> "Expected Right(" + expected + ") but got " + e);
         assertEquals(expected, e.getRight());
     }
 
     private static void assertLeft(String expected, HKT<Either.Tag<String>, ?> hkt) {
         Either<String, ?> e = Either.narrow(hkt);
-        assertTrue(e.isLeft(), "Expected Left(" + expected + ") but got Right(" + e.getRight() + ")");
+        assertTrue(e.isLeft(), () -> "Expected Left(" + expected + ") but got " + e);
         assertEquals(expected, e.getLeft());
     }
 

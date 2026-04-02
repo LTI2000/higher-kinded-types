@@ -1,17 +1,10 @@
 package lti;
 
-import java.util.Optional;
+import java.util.NoSuchElementException;
 import java.util.function.Function;
 
-/**
- * The concrete Maybe container. Wraps Optional internally.
- */
-final class Maybe<A> implements HKT<Maybe.Tag, A> {
-  /**
-   * Phantom tag for Maybe.
-   */
-  interface Tag {
-  }
+sealed abstract class Maybe<A> implements HKT<Maybe.Tag, A> permits Maybe.Just, Maybe.Nothing {
+  interface Tag {}
 
   static final Monad<Tag> MONAD = new Monad<>() {
     @Override
@@ -26,42 +19,34 @@ final class Maybe<A> implements HKT<Maybe.Tag, A> {
     }
   };
 
-  private final Optional<A> value;
+  static final class Just<A> extends Maybe<A> {
+    final A value;
 
-  private Maybe(Optional<A> value) {
-    this.value = value;
+    Just(A value) { this.value = value; }
+
+    @Override public boolean isNothing() { return false; }
+    @Override public A get() { return value; }
+    @Override public String toString() { return "Just(" + value + ")"; }
   }
 
-  public static <A> Maybe<A> just(A a) {
-    return new Maybe<>(Optional.of(a));
+  static final class Nothing<A> extends Maybe<A> {
+    @SuppressWarnings("rawtypes")
+    private static final Nothing INSTANCE = new Nothing();
+
+    private Nothing() {}
+
+    @Override public boolean isNothing() { return true; }
+    @Override public A get() { throw new NoSuchElementException("Nothing.get"); }
+    @Override public String toString() { return "Nothing"; }
   }
 
-  public static <A> Maybe<A> nothing() {
-    return new Maybe<>(Optional.empty());
-  }
+  abstract boolean isNothing();
+  abstract A get();
 
-  public boolean isNothing() {
-    return value.isEmpty();
-  }
+  static <A> Maybe<A> just(A a) { return new Just<>(a); }
 
-  public A get() {
-    return value.get();
-  }
+  @SuppressWarnings("unchecked")
+  static <A> Maybe<A> nothing() { return (Maybe<A>) Nothing.INSTANCE; }
 
-  public Optional<A> toOptional() {
-    return value;
-  }
-
-  @Override
-  public String toString() {
-    return value.map(v -> "Just(" + v + ")").orElse("Nothing");
-  }
-
-  /**
-   * Narrow App<MaybeTag, A> back to Maybe<A> — safe because the only
-   * implementor of App<MaybeTag, ?> in this codebase is Maybe.
-   */
-  public static <A> Maybe<A> narrow(HKT<Maybe.Tag, A> HKT) {
-    return (Maybe<A>) HKT;
-  }
+  static <A> Maybe<A> narrow(HKT<Maybe.Tag, A> hkt) { return (Maybe<A>) hkt; }
 }
