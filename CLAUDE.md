@@ -1,0 +1,70 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Commands
+
+```bash
+# Build
+mvn compile
+
+# Run all tests
+mvn test
+
+# Run a single test class
+mvn test -Dtest=MaybeTest
+
+# Run a single test method
+mvn test -Dtest=MaybeTest#monadLaw_leftIdentity
+
+# Run only jqwik property tests (they are discovered by the jqwik engine, not Jupiter)
+mvn test -Dtest=MaybeTest
+```
+
+## Architecture
+
+This project demonstrates higher-kinded types (HKT) in Java using the **witness/tag pattern** — a simulation of `F<A>` that Java's type system cannot express natively.
+
+### The core encoding
+
+`HKT<F, A>` is a marker interface that stands in for `F<A>`. Every concrete container (Maybe, ListF, Either) implements `HKT<ItsOwnTag, A>` and carries a phantom tag type:
+
+```
+HKT<F, A>
+├── Maybe<A>   implements HKT<Maybe.Tag, A>
+├── ListF<A>   implements HKT<ListF.Tag, A>
+└── Either<E,A> implements HKT<Either.Tag<E>, A>
+```
+
+**Narrowing** (`Maybe.narrow(hkt)`) is an unchecked cast back to the concrete type. It is safe because within this package, only one class ever implements each tag.
+
+### Type class hierarchy
+
+```
+Functor<F>         fmap
+  └── Applicative<F>   pure, splat (<*>)
+        └── Monad<F>       bind (>>=)
+                           fmap and splat have default implementations derived from bind
+```
+
+Monad instances: `MaybeMonad` (singleton), `ListMonad` (singleton), `EitherMonad<E>` (instantiated per error type).
+
+### Combinators (`Combinators.java`)
+
+Three generic combinators that work across any monad:
+
+- **`kleisli(M, f, g)`** — Kleisli composition (`>=>` in Haskell): composes `A → F[B]` with `B → F[C]` into `A → F[C]`
+- **`liftA2(A, f, fa, fb)`** — combines two independent applicative values with a binary function
+- **`mapM(M, items, f)`** — traverses a list monadically, short-circuiting on the first failure (equivalent to Haskell's `mapM` / `traverse`)
+
+### Testing
+
+Uses **JUnit Jupiter** (`@Test`) for unit tests and **jqwik** (`@Property`, `@ForAll`) for property-based tests. Both engines run on the JUnit Platform via Maven Surefire.
+
+Property tests prove the standard algebraic laws for each type class:
+- Functor: identity, composition
+- Applicative: identity, homomorphism
+- Monad: left identity, right identity, associativity
+- Kleisli: left identity, right identity
+
+All test classes are in `src/test/java/lti/` (same package as production code) to access package-private types. `M::pure` cannot be used as a method reference due to Java's type inference limits — use `x -> M.pure(x)` instead.
