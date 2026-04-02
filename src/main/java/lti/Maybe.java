@@ -47,7 +47,6 @@ final class Maybe<A> implements HKT<Maybe.Tag, A> {
    * Narrow App<MaybeTag, A> back to Maybe<A> — safe because the only
    * implementor of App<MaybeTag, ?> in this codebase is Maybe.
    */
-  @SuppressWarnings("unchecked")
   public static <A> Maybe<A> narrow(HKT<Maybe.Tag, A> HKT) {
     return (Maybe<A>) HKT;
   }

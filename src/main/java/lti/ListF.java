@@ -21,7 +21,6 @@ final class ListF<A> implements HKT<ListF.Tag, A> {
     return new ListF<>(List.of(values));
   }
 
-  @SuppressWarnings("unchecked")
   public static <A> ListF<A> narrow(HKT<ListF.Tag, A> HKT) {
     return (ListF<A>) HKT;
   }

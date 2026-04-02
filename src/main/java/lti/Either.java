@@ -46,7 +46,6 @@ final class Either<E, A> implements HKT<Either.Tag<E>, A> {
     return isRight ? "Right(" + right + ")" : "Left(" + left + ")";
   }
 
-  @SuppressWarnings("unchecked")
   public static <E, A> Either<E, A> narrow(HKT<Either.Tag<E>, A> HKT) {
     return (Either<E, A>) HKT;
   }
