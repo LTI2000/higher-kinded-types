@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class EitherTest {
 
-    private static final EitherMonad<String> E = new EitherMonad<>("error");
+    private static final EitherMonad<String> E = new EitherMonad<>();
 
     private static final Function<Integer, HKT<Either.Tag<String>, Integer>> parsePositive =
         n -> n > 0 ? Either.right(n) : Either.left("Expected positive, got: " + n);

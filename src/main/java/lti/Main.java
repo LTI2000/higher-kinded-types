@@ -44,7 +44,7 @@ public class Main {
 
       // --- Either: typed error handling ---
       System.out.println("\n=== Either Monad (typed errors) ===");
-      EitherMonad<String> E = new EitherMonad<>("error");
+      EitherMonad<String> E = new EitherMonad<>();
 
       Function<Integer, HKT<Either.Tag<String>, Integer>> parsePositive =
           n -> n > 0 ? Either.right(n) : Either.left("Expected positive, got: " + n);
