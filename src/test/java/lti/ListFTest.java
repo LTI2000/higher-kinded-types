@@ -20,7 +20,7 @@ class ListFTest {
     @Test
     void fmap_squaresAllElements() {
         HKT<ListF.Tag, Integer> result = L.fmap(ListF.of(1, 2, 3, 4), x -> x * x);
-        assertEquals(List.of(1, 4, 9, 16), ListF.narrow(result).values);
+        assertEquals(List.of(1, 4, 9, 16), ListF.narrow(result).toList());
     }
 
     // -------------------------------------------------------------------------
@@ -29,10 +29,9 @@ class ListFTest {
 
     @Test
     void splat_cartesianProduct() {
-        HKT<ListF.Tag, Function<Integer, Integer>> fns =
-            ListF.of(List.of(x -> x + 10, x -> x * 2));
+        HKT<ListF.Tag, Function<Integer, Integer>> fns = ListF.of(x -> x + 10, x -> x * 2);
         HKT<ListF.Tag, Integer> result = L.splat(fns, ListF.of(1, 2, 3));
-        assertEquals(List.of(11, 12, 13, 2, 4, 6), ListF.narrow(result).values);
+        assertEquals(List.of(11, 12, 13, 2, 4, 6), ListF.narrow(result).toList());
     }
 
     // -------------------------------------------------------------------------
@@ -42,7 +41,7 @@ class ListFTest {
     @Test
     void bind_mirrorElements() {
         HKT<ListF.Tag, Integer> result = L.bind(ListF.of(1, 2, 3), n -> ListF.of(n, -n));
-        assertEquals(List.of(1, -1, 2, -2, 3, -3), ListF.narrow(result).values);
+        assertEquals(List.of(1, -1, 2, -2, 3, -3), ListF.narrow(result).toList());
     }
 
     // -------------------------------------------------------------------------
@@ -54,7 +53,7 @@ class ListFTest {
 
     @Property
     void functorLaw_identity(@ForAll List<Integer> values) {
-        List<Integer> result = ListF.narrow(L.fmap(ListF.of(values), x -> x)).values;
+        List<Integer> result = ListF.narrow(L.fmap(ListF.of(values), x -> x)).toList();
         assertEquals(values, result);
     }
 
@@ -64,8 +63,8 @@ class ListFTest {
         Function<Integer, Integer> g = x -> x * 3;
         HKT<ListF.Tag, Integer> fa = ListF.of(values);
 
-        List<Integer> lhs = ListF.narrow(L.fmap(fa, f.compose(g))).values;   // fmap (f ∘ g)
-        List<Integer> rhs = ListF.narrow(L.fmap(L.fmap(fa, g), f)).values;   // fmap f ∘ fmap g
+        List<Integer> lhs = ListF.narrow(L.fmap(fa, f.compose(g))).toList();   // fmap (f ∘ g)
+        List<Integer> rhs = ListF.narrow(L.fmap(L.fmap(fa, g), f)).toList();   // fmap f ∘ fmap g
         assertEquals(lhs, rhs);
     }
 
@@ -79,15 +78,15 @@ class ListFTest {
     @Property
     void applicativeLaw_identity(@ForAll List<Integer> values) {
         HKT<ListF.Tag, Function<Integer, Integer>> pureId = L.pure(Function.identity());
-        List<Integer> result = ListF.narrow(L.splat(pureId, ListF.of(values))).values;
+        List<Integer> result = ListF.narrow(L.splat(pureId, ListF.of(values))).toList();
         assertEquals(values, result);
     }
 
     @Property
     void applicativeLaw_homomorphism(@ForAll int a) {
         Function<Integer, Integer> f = x -> x * 3;
-        List<Integer> lhs = ListF.narrow(L.splat(L.pure(f), L.pure(a))).values;
-        List<Integer> rhs = ListF.narrow(L.pure(f.apply(a))).values;
+        List<Integer> lhs = ListF.narrow(L.splat(L.pure(f), L.pure(a))).toList();
+        List<Integer> rhs = ListF.narrow(L.pure(f.apply(a))).toList();
         assertEquals(lhs, rhs);
     }
 
@@ -102,15 +101,15 @@ class ListFTest {
     @Property
     void monadLaw_leftIdentity(@ForAll int a) {
         Function<Integer, HKT<ListF.Tag, Integer>> f = x -> ListF.of(x, -x);
-        List<Integer> lhs = ListF.narrow(L.bind(L.pure(a), f)).values;
-        List<Integer> rhs = ListF.narrow(f.apply(a)).values;
+        List<Integer> lhs = ListF.narrow(L.bind(L.pure(a), f)).toList();
+        List<Integer> rhs = ListF.narrow(f.apply(a)).toList();
         assertEquals(lhs, rhs);
     }
 
     @Property
     void monadLaw_rightIdentity(@ForAll List<Integer> values) {
         HKT<ListF.Tag, Integer> m = ListF.of(values);
-        List<Integer> result = ListF.narrow(L.bind(m, x -> L.pure(x))).values;
+        List<Integer> result = ListF.narrow(L.bind(m, x -> L.pure(x))).toList();
         assertEquals(values, result);
     }
 
@@ -120,8 +119,8 @@ class ListFTest {
         Function<Integer, HKT<ListF.Tag, Integer>> f = x -> ListF.of(x, x * 2);
         Function<Integer, HKT<ListF.Tag, Integer>> g = x -> ListF.of(x - 1, x + 1);
 
-        List<Integer> lhs = ListF.narrow(L.bind(L.bind(m, f), g)).values;
-        List<Integer> rhs = ListF.narrow(L.bind(m, a -> L.bind(f.apply(a), g))).values;
+        List<Integer> lhs = ListF.narrow(L.bind(L.bind(m, f), g)).toList();
+        List<Integer> rhs = ListF.narrow(L.bind(m, a -> L.bind(f.apply(a), g))).toList();
         assertEquals(lhs, rhs);
     }
 
@@ -131,7 +130,7 @@ class ListFTest {
 
     @Property
     void bind_emptyList_alwaysEmpty(@ForAll List<Integer> ignored) {
-        HKT<ListF.Tag, Integer> result = L.bind(ListF.of(List.of()), x -> ListF.of(ignored));
-        assertTrue(ListF.narrow(result).values.isEmpty());
+        HKT<ListF.Tag, Integer> result = L.bind(ListF.nil(), x -> ListF.of(ignored));
+        assertTrue(ListF.narrow(result).isEmpty());
     }
 }

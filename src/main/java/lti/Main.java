@@ -79,9 +79,7 @@ public class Main {
 
       // --- List: Applicative (cartesian product) ---
       System.out.println("\n=== List Applicative (cartesian product) ===");
-      HKT<ListF.Tag, Function<Integer, Integer>> fns = ListF.of(
-          List.of(x -> x + 10, x -> x * 2)
-      );
+      HKT<ListF.Tag, Function<Integer, Integer>> fns = ListF.of(x -> x + 10, x -> x * 2);
       HKT<ListF.Tag, Integer> vals    = ListF.of(1, 2, 3);
       HKT<ListF.Tag, Integer> applied = L.splat(fns, vals);
       System.out.println(ListF.narrow(applied));  // ListF[11, 12, 13, 2, 4, 6]
