@@ -2,7 +2,8 @@ package lti;
 
 import java.util.function.Function;
 
-sealed abstract class Either<E, A> implements HKT<Either.Tag<E>, A> permits Either.Left, Either.Right {
+sealed abstract class Either<E, A> implements HKT<Either.Tag<E>, A>, Monad<Either.Tag<E>>
+    permits Either.Left, Either.Right {
 
   interface Tag<E> {}
 
@@ -35,23 +36,27 @@ sealed abstract class Either<E, A> implements HKT<Either.Tag<E>, A> permits Eith
   abstract A getRight();
   abstract E getLeft();
 
+  // -------------------------------------------------------------------------
+  // Monad
+  // -------------------------------------------------------------------------
+
+  @Override
+  public <B> HKT<Either.Tag<E>, B> pure(B b) { return Either.right(b); }
+
+  @Override
+  public <B, C> HKT<Either.Tag<E>, C> bind(HKT<Either.Tag<E>, B> fb, Function<B, HKT<Either.Tag<E>, C>> f) {
+    Either<E, B> eb = Either.narrow(fb);
+    return eb.isLeft() ? Either.left(eb.getLeft()) : f.apply(eb.getRight());
+  }
+
+  // -------------------------------------------------------------------------
+  // Factories
+  // -------------------------------------------------------------------------
+
   static <E, A> Either<E, A> left(E e)  { return new Left<>(e); }
   static <E, A> Either<E, A> right(A a) { return new Right<>(a); }
 
   static <E, A> Either<E, A> narrow(HKT<Either.Tag<E>, A> hkt) { return (Either<E, A>) hkt; }
 
-  static <E> Monad<Tag<E>> monad() {
-    return new Monad<>() {
-      @Override
-      public <A> HKT<Tag<E>, A> pure(A a) {
-        return Either.right(a);
-      }
-
-      @Override
-      public <A, B> HKT<Tag<E>, B> bind(HKT<Tag<E>, A> fa, Function<A, HKT<Tag<E>, B>> f) {
-        Either<E, A> ea = Either.narrow(fa);
-        return ea.isLeft() ? Either.left(ea.getLeft()) : f.apply(ea.getRight());
-      }
-    };
-  }
+  static <E> Either<E, Void> monad() { return new Right<>(null); }
 }

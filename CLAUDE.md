@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 In the following, Claude Code assumes the role of a senior developer, who dislikes noise and clutter, and rather prefers to use clean, albeit advanced, abstractions.
 
-All changes being made should also include documentation and AI related files. We strive to automate automation, which is a nice meta pattern.
+All changes being made should also include documentation and AI related files. We strive to automate automation, and improve AI by AI.
 
 ## Commands
 
@@ -35,9 +35,9 @@ This project demonstrates higher-kinded types (HKT) in Java using the **witness/
 
 ```
 HKT<F, A>
-├── Maybe<A>   implements HKT<Maybe.Tag, A>
-├── ListF<A>   implements HKT<ListF.Tag, A>
-└── Either<E,A> implements HKT<Either.Tag<E>, A>
+├── Maybe<A>    implements HKT<Maybe.Tag, A>,    Monad<Maybe.Tag>
+├── ListF<A>    implements HKT<ListF.Tag, A>,    Monad<ListF.Tag>
+└── Either<E,A> implements HKT<Either.Tag<E>, A>, Monad<Either.Tag<E>>
 ```
 
 **Narrowing** (`Maybe.narrow(hkt)`) is an unchecked cast back to the concrete type. It is safe because within this package, only one class ever implements each tag.
@@ -51,10 +51,10 @@ Functor<F>         fmap
                            fmap and splat have default implementations derived from bind
 ```
 
-Monad instances live on their containers — no separate companion classes:
-- `Maybe.MONAD` — static field
-- `ListF.MONAD` — static field (overrides default `fmap`/`splat` for efficiency)
-- `Either.monad()` — static factory method (generic in `E`, so a field isn't possible)
+Each container class directly implements `Monad` — there are no separate companion objects. The singleton instances double as the monad accessor:
+- `Maybe.MONAD` — `Nothing.INSTANCE` (typed `Maybe<?>`)
+- `ListF.MONAD` — `Nil.INSTANCE` (typed `ListF<?>`); overrides default `fmap`/`splat` for efficiency
+- `Either.monad()` — factory returning `new Right<>(null)` (typed `Either<E, Void>`); a factory is necessary because `E` must be fixed at the call site
 
 ### Combinators (`Combinators.java`)
 

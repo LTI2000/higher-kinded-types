@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-sealed abstract class ListF<A> implements HKT<ListF.Tag, A> permits ListF.Nil, ListF.Cons {
+sealed abstract class ListF<A> implements HKT<ListF.Tag, A>, Monad<ListF.Tag>
+    permits ListF.Nil, ListF.Cons {
 
   interface Tag {}
 
@@ -44,9 +45,45 @@ sealed abstract class ListF<A> implements HKT<ListF.Tag, A> permits ListF.Nil, L
 
   private static <A> ListF<A> append(ListF<A> xs, ListF<A> ys) {
     return switch (xs) {
-      case Nil<A> _ -> ys;
-      case Cons<A> c      -> new Cons<>(c.head, append(c.tail, ys));
+      case Nil<A>  _ -> ys;
+      case Cons<A> c -> new Cons<>(c.head, append(c.tail, ys));
     };
+  }
+
+  private static <A, B> ListF<B> flatMap(ListF<A> xs, Function<A, ListF<B>> f) {
+    return switch (xs) {
+      case Nil<A>  _ -> nil();
+      case Cons<A> c -> append(f.apply(c.head), flatMap(c.tail, f));
+    };
+  }
+
+  private static <A, B> ListF<B> map(ListF<A> xs, Function<A, B> f) {
+    return switch (xs) {
+      case Nil<A>  _ -> nil();
+      case Cons<A> c -> new Cons<>(f.apply(c.head), map(c.tail, f));
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // Monad
+  // -------------------------------------------------------------------------
+
+  @Override
+  public <B> HKT<Tag, B> pure(B b) { return new Cons<>(b, nil()); }
+
+  @Override
+  public <B, C> HKT<Tag, C> bind(HKT<Tag, B> fb, Function<B, HKT<Tag, C>> f) {
+    return flatMap(ListF.narrow(fb), b -> ListF.narrow(f.apply(b)));
+  }
+
+  @Override
+  public <B, C> HKT<Tag, C> fmap(HKT<Tag, B> fb, Function<B, C> f) {
+    return map(ListF.narrow(fb), f);
+  }
+
+  @Override
+  public <B, C> HKT<Tag, C> splat(HKT<Tag, Function<B, C>> ff, HKT<Tag, B> fb) {
+    return flatMap(ListF.narrow(ff), fn -> map(ListF.narrow(fb), fn));
   }
 
   // -------------------------------------------------------------------------
@@ -71,43 +108,5 @@ sealed abstract class ListF<A> implements HKT<ListF.Tag, A> permits ListF.Nil, L
 
   static <A> ListF<A> narrow(HKT<ListF.Tag, A> hkt) { return (ListF<A>) hkt; }
 
-  // -------------------------------------------------------------------------
-  // Monad
-  // -------------------------------------------------------------------------
-
-  static final Monad<Tag> MONAD = new Monad<>() {
-    @Override
-    public <A> HKT<Tag, A> pure(A a) {
-      return new Cons<>(a, nil());
-    }
-
-    @Override
-    public <A, B> HKT<Tag, B> bind(HKT<Tag, A> fa, Function<A, HKT<Tag, B>> f) {
-      return flatMap(ListF.narrow(fa), a -> ListF.narrow(f.apply(a)));
-    }
-
-    private <A, B> ListF<B> flatMap(ListF<A> xs, Function<A, ListF<B>> f) {
-      return switch (xs) {
-        case Nil<A> _ -> nil();
-        case Cons<A> c      -> append(f.apply(c.head), flatMap(c.tail, f));
-      };
-    }
-
-    @Override
-    public <A, B> HKT<Tag, B> fmap(HKT<Tag, A> fa, Function<A, B> f) {
-      return map(ListF.narrow(fa), f);
-    }
-
-    private <A, B> ListF<B> map(ListF<A> xs, Function<A, B> f) {
-      return switch (xs) {
-        case Nil<A> _ -> nil();
-        case Cons<A> c      -> new Cons<>(f.apply(c.head), map(c.tail, f));
-      };
-    }
-
-    @Override
-    public <A, B> HKT<Tag, B> splat(HKT<Tag, Function<A, B>> ff, HKT<Tag, A> fa) {
-      return flatMap(ListF.narrow(ff), fn -> map(ListF.narrow(fa), fn));
-    }
-  };
+  static final ListF<?> MONAD = Nil.INSTANCE;
 }
