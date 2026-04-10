@@ -31,13 +31,14 @@ This project demonstrates higher-kinded types (HKT) in Java using the **witness/
 
 ### The core encoding
 
-`HKT<F, A>` is a marker interface that stands in for `F<A>`. Every concrete container (Maybe, ListF, Either) implements `HKT<ItsOwnTag, A>` and carries a phantom tag type:
+`HKT<F, A>` is a marker interface that stands in for `F<A>`. Every concrete container implements `HKT<ItsOwnTag, A>` and carries a phantom tag type:
 
 ```
 HKT<F, A>
-├── Maybe<A>    implements HKT<Maybe.Tag, A>,    Monad<Maybe.Tag>
-├── ListF<A>    implements HKT<ListF.Tag, A>,    Monad<ListF.Tag>
-└── Either<E,A> implements HKT<Either.Tag<E>, A>, Monad<Either.Tag<E>>
+├── Maybe<A>       implements HKT<Maybe.Tag, A>,         Monad<Maybe.Tag>
+├── ListF<A>       implements HKT<ListF.Tag, A>,         Monad<ListF.Tag>
+├── Either<E,A>    implements HKT<Either.Tag<E>, A>,     Monad<Either.Tag<E>>
+└── ContT<R,M,A>   implements HKT<ContT.Tag<R,M>, A>,   Monad<ContT.Tag<R,M>>
 ```
 
 **Narrowing** (`Maybe.narrow(hkt)`) is an unchecked cast back to the concrete type. It is safe because within this package, only one class ever implements each tag.
@@ -55,6 +56,21 @@ Each container class directly implements `Monad` — there are no separate compa
 - `Maybe.MONAD` — `Nothing.INSTANCE` (typed `Maybe<?>`)
 - `ListF.MONAD` — `Nil.INSTANCE` (typed `ListF<?>`); overrides default `fmap`/`splat` for efficiency
 - `Either.monad()` — factory returning `new Right<>(null)` (typed `Either<E, Void>`); a factory is necessary because `E` must be fixed at the call site
+- `ContT.monad()` — factory returning a trivial `ContT<R, M, Void>`; both `R` and `M` must be fixed at the call site
+
+### Monad transformer (`ContT.java`)
+
+`ContT<R, M, A>` is the continuation monad transformer. It wraps a function `(A → M[R]) → M[R]`, threading any base monad `M` through a continuation-passing chain:
+
+```
+pure(a)  = ContT(k → k(a))
+m >>= f  = ContT(k → m.run(a → f(a).run(k)))
+```
+
+Key operations beyond the monad interface:
+- **`ContT.lift(M, ma)`** — embeds a base-monad action: `ContT(k → M.bind(ma, k))`
+- **`ContT.callCC(f)`** — captures the current continuation; calling `escape(a)` delivers `a` directly to the outer continuation, bypassing any remaining chain
+- **`runContT(k)`** — applies the final continuation `k` to produce an `M[R]` answer
 
 ### Combinators (`Combinators.java`)
 

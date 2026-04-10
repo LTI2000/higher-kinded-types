@@ -27,13 +27,31 @@ Functor<F>       — fmap
 
 ## Containers
 
-| Type | Variants | Monad instance |
+| Type | Variants / structure | Monad instance |
 |---|---|---|
 | `Maybe<A>` | `Just<A>`, `Nothing<A>` (singleton) | `Maybe.MONAD` |
 | `Either<E, A>` | `Left<E, A>`, `Right<E, A>` | `Either.monad()` |
 | `ListF<A>` | wraps `List<A>` | `ListF.MONAD` |
+| `ContT<R, M, A>` | wraps `(A → M[R]) → M[R]` | `ContT.monad()` |
 
-Both `Maybe` and `Either` are proper sealed sum types. `Either.monad()` is a factory rather than a static field because `E` must be fixed at the call site.
+`Maybe` and `Either` are proper sealed sum types. `Either.monad()` and `ContT.monad()` are factories rather than static fields because their extra type parameters (`E`, `R`, `M`) must be fixed at the call site.
+
+## Monad transformer
+
+`ContT<R, M, A>` is the continuation monad transformer. It sequences computations in continuation-passing style over any base monad `M`:
+
+```java
+// embed a base-monad action
+ContT<Integer, Maybe.Tag, Integer> ct = ContT.lift(Maybe.MONAD, Maybe.just(7));
+
+// non-local exit: escape(99) bypasses any remaining bind chain
+ContT<Integer, Maybe.Tag, Integer> ct2 = ContT.callCC(exit ->
+    ContT.narrow(M.bind(exit.apply(99), x -> M.pure(x + 1000)))
+);
+
+// run with a final continuation to produce M[R]
+HKT<Maybe.Tag, Integer> result = ct.runContT(Maybe::just);
+```
 
 ## Combinators
 
