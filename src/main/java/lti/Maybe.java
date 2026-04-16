@@ -3,9 +3,21 @@ package lti;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
 
+/**
+ * Optional value — either {@link Just} wrapping a value or {@link Nothing} for absence.
+ *
+ * <p>Models Haskell's {@code Maybe}. The monad instance short-circuits on {@code Nothing}:
+ * once absent, no subsequent {@code bind} step runs.
+ *
+ * <p>Use {@code Maybe.MONAD} as the monad witness; it is the {@code Nothing} singleton
+ * typed as {@code Maybe<?>}.
+ *
+ * @param <A> the wrapped value type
+ */
 sealed abstract class Maybe<A> implements HKT<Maybe.Tag, A>, Monad<Maybe.Tag>
     permits Maybe.Just, Maybe.Nothing {
 
+  /** Phantom tag identifying {@code Maybe} in the HKT encoding. */
   interface Tag {}
 
   static final class Just<A> extends Maybe<A> {

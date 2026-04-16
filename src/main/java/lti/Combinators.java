@@ -4,6 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * Generic combinators that work across any {@link Monad} or {@link Applicative}.
+ *
+ * <p>All methods are package-private and stateless; the class is never instantiated.
+ */
 public class Combinators {
     /**
      * mapM — sequence a list through a monadic function, collecting results.

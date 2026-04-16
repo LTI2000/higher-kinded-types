@@ -2,9 +2,22 @@ package lti;
 
 import java.util.function.Function;
 
+/**
+ * A value that is either an error ({@link Left}) or a result ({@link Right}).
+ *
+ * <p>Models Haskell's {@code Either}. The monad instance is right-biased: {@code bind}
+ * propagates {@code Left} unchanged and only applies the function to a {@code Right} value.
+ *
+ * <p>Because the error type {@code E} must be fixed at the call site, use
+ * {@code Either.<E>monad()} to obtain the monad witness rather than a constant field.
+ *
+ * @param <E> the error type (left side)
+ * @param <A> the success type (right side)
+ */
 sealed abstract class Either<E, A> implements HKT<Either.Tag<E>, A>, Monad<Either.Tag<E>>
     permits Either.Left, Either.Right {
 
+  /** Phantom tag parameterised by the error type {@code E}. */
   interface Tag<E> {}
 
   static final class Left<E, A> extends Either<E, A> {

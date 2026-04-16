@@ -23,6 +23,9 @@ mvn test -Dtest=MaybeTest#monadLaw_leftIdentity
 
 # Run only jqwik property tests (they are discovered by the jqwik engine, not Jupiter)
 mvn test -Dtest=MaybeTest
+
+# Generate Javadoc (output: target/site/apidocs/index.html)
+mvn javadoc:javadoc
 ```
 
 ## Architecture

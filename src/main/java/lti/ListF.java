@@ -4,9 +4,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * An immutable singly-linked list as a monad ({@code bind} = {@code concatMap}).
+ *
+ * <p>The two variants are {@link Nil} (empty) and {@link Cons} (head + tail).
+ * {@code fmap} and {@code splat} are overridden with direct recursive implementations
+ * that avoid the extra allocation from the default {@code bind}-derived versions.
+ *
+ * <p>Use {@code ListF.MONAD} as the monad witness; it is the {@code Nil} singleton
+ * typed as {@code ListF<?>}.
+ *
+ * @param <A> the element type
+ */
 sealed abstract class ListF<A> implements HKT<ListF.Tag, A>, Monad<ListF.Tag>
     permits ListF.Nil, ListF.Cons {
 
+  /** Phantom tag identifying {@code ListF} in the HKT encoding. */
   interface Tag {}
 
   static final class Nil<A> extends ListF<A> {

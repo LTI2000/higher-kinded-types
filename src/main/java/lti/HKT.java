@@ -16,9 +16,9 @@ package lti;
 //   Monad<F>          — extends Applicative, adds bind (>>=)
 
 /**
- * HKT<F, A> is the stand-in for F<A>.
- * Concrete containers implement this interface for their tag F.
- * Because A is a real generic parameter, the compiler tracks it fully.
+ * {@code HKT<F, A>} is the stand-in for {@code F<A>}.
+ * Concrete containers implement this interface for their tag {@code F}.
+ * Because {@code A} is a real generic parameter, the compiler tracks it fully.
  */
 interface HKT<F, A> {
 }
